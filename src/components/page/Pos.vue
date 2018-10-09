@@ -18,7 +18,7 @@
             <div class="BtnClass">
               <el-button type="warning">挂单</el-button>
               <el-button type="danger" @click="delAllGoods()" >删除</el-button>
-              <el-button type="success">结账</el-button>
+              <el-button type="success" @click="checkout()">结账</el-button>
             </div>
           </el-tab-pane>
           <el-tab-pane label="挂单">挂单</el-tab-pane>
@@ -203,6 +203,23 @@ export default {
       this.tableData = [];
       this.totalCount = 0;
       this.totalMoney = 0;
+    },
+    //结账方法模拟
+    checkout:function(){
+      if(this.totalCount != 0)
+      {
+        this.tableData = [];
+        this.totalCount = 0;
+        this.totalMoney = 0;
+        this.$message({
+          message:'结账成功,感谢你又为本店出了一份力！',
+          type:'success'
+        })
+      }
+      else
+      {
+        this.$message.error('不能空结，老板了解你急切的心情');
+      }
     }
   }
 }
