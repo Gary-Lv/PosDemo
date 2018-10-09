@@ -5,19 +5,19 @@
         <el-tabs type="border-card" class="tabname">
           <el-tab-pane label="点餐">
             <el-table style="width:100%;" show-summary border :data="tableData">
-              <el-table-column prop="commName" label="商品名称"></el-table-column>
+              <el-table-column prop="goodsName" label="商品名称"></el-table-column>
               <el-table-column prop="count" label="数量" width=80></el-table-column>
               <el-table-column prop="price" label="金额" width=80></el-table-column>
               <el-table-column fixed="right" label="操作">
                 <template slot-scope="scope">
-                  <el-button type="text" size="small">查看</el-button>
-                  <el-button type="text" size="small">删除</el-button>
+                  <el-button type="text" size="small" @click="addOrderList(scope.row)" >增加</el-button>
+                  <el-button type="text" size="small" @click="delSinglsGood(scope.row)" >删除</el-button>
                 </template>
               </el-table-column>
             </el-table>
             <div class="BtnClass">
               <el-button type="warning">挂单</el-button>
-              <el-button type="danger">删除</el-button>
+              <el-button type="danger" @click="delAllGoods()" >删除</el-button>
               <el-button type="success">结账</el-button>
             </div>
           </el-tab-pane>
@@ -33,7 +33,7 @@
           </div>
           <div class="goodsCate-box">
             <ul>
-              <li v-for =" item in oftenGoods " class="goodsInfo-box">
+              <li v-for =" item in oftenGoods" :key="item.id" @click="addOrderList(item)" class="goodsInfo-box">
                 <span>{{item.goodsName}}</span>
                 <span class="moneycolor">￥{{item.price}}元</span>
               </li>
@@ -44,7 +44,7 @@
               <el-tab-pane label="主食">
                 <div>
                   <ul class='cookList'>
-                      <li v-for="item in type0Goods">
+                      <li v-for="item in type0Goods" :key="item.id" @click="addOrderList(item)">
                           <span class="foodImg"><img :src="item.goodsImg" width="100%"></span>
                           <span class="foodName">{{item.goodsName}}</span>
                           <span class="foodPrice">￥{{item.price}}元</span>
@@ -55,7 +55,7 @@
               <el-tab-pane label="小食">
                 <div>
                   <ul class='cookList'>
-                      <li v-for="item in type1Goods">
+                      <li v-for="item in type1Goods" :key="item.id" @click="addOrderList(item)">
                           <span class="foodImg"><img :src="item.goodsImg" width="100%"></span>
                           <span class="foodName">{{item.goodsName}}</span>
                           <span class="foodPrice">￥{{item.price}}元</span>
@@ -66,7 +66,7 @@
               <el-tab-pane label="饮料">
                 <div>
                   <ul class='cookList'>
-                      <li v-for="item in type2Goods">
+                      <li v-for="item in type2Goods" :key="item.id" @click="addOrderList(item)">
                           <span class="foodImg"><img :src="item.goodsImg" width="100%"></span>
                           <span class="foodName">{{item.goodsName}}</span>
                           <span class="foodPrice">￥{{item.price}}元</span>
@@ -77,7 +77,7 @@
               <el-tab-pane label="套餐">
                 <div>
                   <ul class='cookList'>
-                      <li v-for="item in type3Goods">
+                      <li v-for="item in type3Goods" :key="item.id" @click="addOrderList(item)">
                           <span class="foodImg"><img :src="item.goodsImg" width="100%"></span>
                           <span class="foodName">{{item.goodsName}}</span>
                           <span class="foodPrice">￥{{item.price}}元</span>
@@ -105,28 +105,14 @@ export default {
   },
   data () {
     return {
-      tableData: [
-        {
-          commName: '香辣鸡腿堡',
-          count: 2,
-          price: 36
-        },
-        {
-          commName: '可口可乐',
-          count: 3,
-          price: 24
-        },
-        {
-          commName: '大份薯条',
-          count: 1,
-          price: 12
-        }
-      ],
+      tableData: [],
       oftenGoods:[],
       type0Goods:[],
       type1Goods:[],
       type2Goods:[],
       type3Goods:[],
+      totalCount:0,
+      totalMoney:0
     }
   },
   created () {
@@ -150,10 +136,11 @@ export default {
     .then(datas=>{
       if(datas.statusText == "OK")
       {
-        this.type0Goods = datas.data[0];
-        this.type1Goods = datas.data[1];
-        this.type2Goods = datas.data[2];
-        this.type3Goods = datas.data[3];
+        //替换商品图片
+        this.type0Goods = this.$options.methods.ReplaceImg(datas.data[0]);
+        this.type1Goods = this.ReplaceImg(datas.data[1]);
+        this.type2Goods = this.ReplaceImg(datas.data[2]);
+        this.type3Goods = this.ReplaceImg(datas.data[3]);
       }
       else{
         alert("获取数据失败");
@@ -162,6 +149,61 @@ export default {
     .catch(error=>{
       alert("网络错误，不能访问");
     });
+  },
+  methods:{
+    //替换服务器拿到数据中的图片
+    ReplaceImg:function(items){
+      for(var i=0;i<items.length;i++)
+      {
+        items[i].goodsImg = "http://cache.5ikfc.com/imgs/kfc/menu/wucan/wucan148-01.jpg";
+      }
+      return items;
+    },
+    //判断商品是否存在列表
+    addOrderList:function(cateInfo){
+      //商品和总金额清0
+      this.totalCount = 0;
+      this.totalMoney = 0;
+      let isHave = false;//标识商品是否存在
+      console.log(this.tableData);
+      for(var i = 0;i<this.tableData.length;i++)
+      {
+        if(this.tableData[i].goodsId == cateInfo.goodsId)
+        {
+          isHave = true;
+        }
+      }
+      if(isHave){
+        //存在就增加数量
+        let arr = this.tableData.filter(item => item.goodsId == cateInfo.goodsId);
+        arr[0].count++;
+      }
+      else{
+        let newGoods = {
+          goodsId:cateInfo.goodsId,
+          goodsName:cateInfo.goodsName,
+          price:cateInfo.price,
+          count:1
+        }
+        this.tableData.push(newGoods);
+      }
+
+      //进行最后的数量和价格计算
+      this.tableData.forEach((element)=>{
+        this.totalCount += element.count;
+        this.totalMoney = this.totalMoney + (element.count*element.price);
+      });
+    },
+    //删除单个商品
+    delSinglsGood:function(cateInfo){
+      this.tableData = this.tableData.filter(item => item.goodsId != cateInfo.goodsId);
+    },
+    //删除全部商品
+    delAllGoods:function(){
+      this.tableData = [];
+      this.totalCount = 0;
+      this.totalMoney = 0;
+    }
   }
 }
 </script>

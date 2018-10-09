@@ -26,6 +26,35 @@
 </template>
 
 <script>
+export default {
+  data() {
+    return {
+      items: [
+        {
+          icon: "icon iconfont icon-goumai",
+          path: '/',
+          title: "结账"
+        },
+        {
+          icon: "icon iconfont icon-dianpu",
+          path: '/DianPu',
+          title: "店铺"
+        },
+        {
+          icon: "icon iconfont icon-goumai",
+          path: '/',
+          title: "美食"
+        }
+      ]
+    };
+  },
+  methods:{
+      routerLink:function(path){
+          //跳转路由
+          this.$router.push(path);
+      }
+  }
+};
 </script>
 
 <style>
